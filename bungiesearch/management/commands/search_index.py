@@ -135,7 +135,7 @@ class Command(BaseCommand):
                     mapping[mdl_idx.get_model().__name__] = mdl_idx.get_mapping()
 
                     mdl_analysis = mdl_idx.collect_analysis()
-                    for key in ('analyzer', 'tokenizer', 'filter'):
+                    for key in analysis.keys():
                         value = mdl_analysis.get(key)
                         if value is not None:
                             analysis[key].update(value)
