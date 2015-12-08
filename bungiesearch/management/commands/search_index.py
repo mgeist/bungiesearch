@@ -129,10 +129,10 @@ class Command(BaseCommand):
                 indices = src.get_indices()
             for index in indices:
                 mapping = {}
+                analysis = {}
                 for mdl_idx in src.get_model_indices(index):
                     mapping[mdl_idx.get_model().__name__] = mdl_idx.get_mapping()
-
-                analysis = mdl_idx.collect_analysis()
+                    analysis.update(mdl_idx.collect_analysis())
 
                 logging.info('Creating index {} with {} doctypes.'.format(index, len(mapping)))
                 es.indices.create(index=index, body={'mappings': mapping, 'settings': {'analysis': analysis}}, ignore=400)
