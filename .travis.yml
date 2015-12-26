@@ -21,3 +21,5 @@ script:
   - ./runtests.sh --cluster
 after_success:
   test -n "$COVERAGE" && coveralls
+notifications:
+  email: false
