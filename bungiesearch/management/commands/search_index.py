@@ -148,7 +148,7 @@ class Command(BaseCommand):
                     settings['number_of_replicas'] = number_of_replicas
 
                 for mdl_idx in src.get_model_indices(index):
-                    mapping[mdl_idx.get_model().__name__] = mdl_idx.get_mapping()
+                    mapping[mdl_idx.get_model().__name__] = mdl_idx.get_mapping(meta_fields=False)
 
                     mdl_analysis = mdl_idx.collect_analysis()
                     for key in settings['analysis'].keys():
@@ -159,7 +159,7 @@ class Command(BaseCommand):
                 logging.info('Creating index {} with {} doctypes.'.format(index, len(mapping)))
                 es.indices.create(index=index, body={'mappings': mapping, 'settings': settings})
 
-            es.cluster.health(index=','.join(indices), wait_for_status='green', timeout=30)
+            es.cluster.health(index=','.join(indices), wait_for_status='green', timeout='30s')
 
         elif options['action'] == 'update-mapping':
             if options['index']:
