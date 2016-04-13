@@ -1,5 +1,6 @@
 *.pyc
 *.egg
+*.venv
 
 /venv
 /build/

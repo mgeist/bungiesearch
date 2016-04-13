@@ -135,20 +135,29 @@ class Command(BaseCommand):
             else:
                 indices = src.get_indices()
             for index in indices:
+                index_settings = src.BUNGIE['INDICES'][index].get('settings', {})
                 mapping = {}
-                analysis = {'analyzer': {}, 'tokenizer': {}, 'filter': {}}
+                settings = {'analysis': {'analyzer': {}, 'tokenizer': {}, 'filter': {}}}
+
+                # Override the index creation settings with index settings
+                number_of_shards = index_settings.get('number_of_shards', None)
+                number_of_replicas = index_settings.get('number_of_replicas', None)
+                if number_of_shards is not None:
+                    settings['number_of_shards'] = number_of_shards
+                if number_of_replicas is not None:
+                    settings['number_of_replicas'] = number_of_replicas
 
                 for mdl_idx in src.get_model_indices(index):
                     mapping[mdl_idx.get_model().__name__] = mdl_idx.get_mapping()
 
                     mdl_analysis = mdl_idx.collect_analysis()
-                    for key in analysis.keys():
+                    for key in settings['analysis'].keys():
                         value = mdl_analysis.get(key)
                         if value is not None:
-                            analysis[key].update(value)
+                            settings['analysis'][key].update(value)
 
                 logging.info('Creating index {} with {} doctypes.'.format(index, len(mapping)))
-                es.indices.create(index=index, body={'mappings': mapping, 'settings': {'analysis': analysis}})
+                es.indices.create(index=index, body={'mappings': mapping, 'settings': settings})
 
             es.cluster.health(index=','.join(indices), wait_for_status='green', timeout=30)
 

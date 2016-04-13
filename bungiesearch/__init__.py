@@ -37,8 +37,10 @@ class Bungiesearch(Search):
         cls.__loaded_indices__ = True
 
         # Loading indices.
-        for index_name, module_str in iteritems(cls.BUNGIE['INDICES']):
+        for index_name, index_settings in iteritems(cls.BUNGIE['INDICES']):
+            module_str = index_settings['models']
             index_module = import_module(module_str)
+
             for index_obj in itervalues(index_module.__dict__):
                 try:
                     if issubclass(index_obj, ModelIndex) and index_obj != ModelIndex:

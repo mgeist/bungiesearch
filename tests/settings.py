@@ -37,11 +37,24 @@ BUNGIESEARCH = {
         'bsearch': 'core.search_aliases'
     },
     'INDICES': {
-        'bungiesearch_demo': 'core.search_indices',
-        'bungiesearch_demo_bis': 'core.search_indices_bis'
+        'bungiesearch_demo': {
+            'models': 'core.search_indices',
+            'settings': {
+                'number_of_shards': 1,
+                'number_of_replicas': 0,
+            }
+        },
+        'bungiesearch_demo_bis': {
+            'models': 'core.search_indices_bis',
+            'settings': {
+                'number_of_shards': 1,
+                'number_of_replicas': 0
+            }
+        }
     },
     'SIGNALS': {
         'BUFFER_SIZE': 1,
         'SIGNAL_CLASS': 'core.bungie_signal.BungieTestSignalProcessor'
-    }
+    },
+    'TIMEOUT': 30
 }

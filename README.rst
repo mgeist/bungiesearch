@@ -387,7 +387,7 @@ Django settings
 
     BUNGIESEARCH = {
                     'URLS': [os.getenv('ELASTIC_SEARCH_URL')],
-                    'INDICES': {'bungiesearch_demo': 'core.search_indices'},
+                    'INDICES': {'bungiesearch_demo': {'models': core.search_indices'}},
                     'ALIASES': {'bsearch': 'myproject.search_aliases'},
                     'SIGNALS': {'BUFFER_SIZE': 1}  # uses BungieSignalProcessor
                     }
@@ -704,27 +704,54 @@ mappings for each ModelIndex.
 .. code:: python
 
     BUNGIESEARCH = {
-                    'URLS': ['localhost'], # No leading http:// or the elasticsearch client will complain.
-                    'INDICES': {'main_index': 'myproject.myapp.myindices'} # Must be a module path.
-                    'ALIASES': {'bsearch': 'myproject.search_aliases'},
-                    'SIGNALS': {'BUFFER_SIZE': 1},
-                    'TIMEOUT': 5
-                    }
+      'URLS': [os.getenv('ELASTIC_SEARCH_URL')],
+      'INDICES': {
+        'main_index': {
+            'models': 'myproject.myapp.myindices',
+            'settings': {
+                'number_of_shards': None,
+                'number_of_replicas': None,
+            }
+        },
+      }
+      'ALIASES': {
+        'bsearch': 'myproject.search_aliases'
+      },
+      'SIGNALS': {
+        'BUFFER_SIZE': 1,
+        'SIGNAL_CLASS': None
+      },
+      'TIMEOUT': 5
+    }
+
 
 URLS
 ~~~~
 
-*Required:* must be a list of URLs which host elasticsearch instance(s).
-This is directly sent to elasticsearch-dsl-py, so any issue with
-multiple URLs should be refered to them.
+*Required:* a list of URLs which host elasticsearch instance(s).
+This is directly sent to elasticsearch-dsl-py, so if you
+have any questions you should read the documentation
+about the hosts keyword argument here,
+http://elasticsearch-py.readthedocs.io/en/master/api.html#elasticsearch
 
 INDICES
 ~~~~~~~
 
-*Required:* must be a dictionary where each key is the name of an
-elasticsearch index and each value is a path to a Python module
-containing classes which inherit from
-``bungiesearch.indices.ModelIndex`` (cf. below).
+*Required:* a dictionary where each key is the name of an
+elasticsearch index and each value is a dictionary that
+contains information about that index.
+
+**models** *(required)* is a string that represents a path to a Python module containing
+classes which inherit from ``bungiesearch.indices.ModelIndex`` (cf. below).
+
+**settings** *(optional)* is a dictionary that contains settings when
+the index is created. Unless you know what these settings do, you should
+ommit them as your elasticsearch server provides defaults for them.
+The only options supported at the moment are number_of_shards and
+number_of_replicas. These settings have testing implications, of which
+you can read in the testing section. You can read about those index
+settings in elasticsearch here,
+https://www.elastic.co/guide/en/elasticsearch/guide/current/_index_settings.html
 
 ALIASES
 ~~~~~~~
@@ -782,15 +809,36 @@ TIMEOUT
 Testing
 =======
 
-The easiest way to run the tests is to install all dev dependencies using
-``./setup.sh`` then run ``./test.sh``
-
 All Bungiesearch tests are in ``tests/core/test_bungiesearch.py``. You
 can run the tests by creating a Python virtual environment, installing
-the requirements from ``requirements.txt``, installing the package
-(``pip install .``) and running ``python tests/manage.py test``. Make
-sure to update ``tests/settings.py`` to use your own elasticsearch URLs,
-or update the ELASTIC\_SEARCH\_URL environment variable.
+the requirements using ``setup.sh`` and running ``./runtests.sh``
+
+.. code:: bash
+
+    # Setup the virtual environment
+    virtualenv venv
+    source venv/bin/activate
+
+    # setup environment inside virtual environment
+    ./setup.sh
+
+    # Run the tests
+    ./runtests.sh
+
+runtests.sh will attempt to connect to a local elasticsearch server if
+there is one running on the default elasticsearch ports. If it cannot
+connect to a server, it attempts to start a server by running elasticsearch
+if it is found in $PATH as elasticsearch.
+
+You can have ``./runtests.sh`` test against a two node cluster by
+specifying the ``--cluster`` argument. If elasticsearch is found on
+the path, it will start a two node cluster and run tests against it.
+This is valuable if you want to run tests in a production like
+environment and all tests are forced to be tested against a cluster
+before being merged into the main codebase.
+
+Make sure to update ``tests/settings.py`` to use your own elasticsearch
+URLs, or update the ELASTIC\_SEARCH\_URL environment variable.
 
 .. |Build Status| image:: https://travis-ci.org/ChristopherRabotin/bungiesearch.svg?branch=master
    :target: https://travis-ci.org/ChristopherRabotin/bungiesearch
