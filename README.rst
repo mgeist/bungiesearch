@@ -65,7 +65,7 @@ Features
 
 -  Requirements
 
-   -  Django >= 1.7
+   -  Django >= 1.8
    -  Python 2.7 (**no Python 3 support yet**)
 
 Feature examples
