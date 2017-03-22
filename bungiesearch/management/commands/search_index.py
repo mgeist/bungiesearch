@@ -155,7 +155,7 @@ class Command(BaseCommand):
                         if value is not None:
                             analysis[key].update(value)
 
-                logging.info('Creating index {} with {} doctypes.'.format(index, len(mapping)))
+                logger.info('Creating index {} with {} doctypes.'.format(index, len(mapping)))
                 es.indices.create(index=index, body={'mappings': mapping, 'settings': {'analysis': analysis}}, ignore=400)
 
             es.cluster.health(index=','.join(indices), wait_for_status='green', timeout='30s')
