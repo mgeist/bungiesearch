@@ -1,5 +1,6 @@
-from bungiesearch.managers import BungiesearchManager
 from django.db import models
+
+from bungiesearch.managers import BungiesearchManager
 
 
 class Article(models.Model):
@@ -24,10 +25,11 @@ class Article(models.Model):
     class Meta:
         app_label = 'core'
 
+
 class User(models.Model):
     name = models.TextField(db_index=True)
     user_id = models.TextField(blank=True, primary_key=True)
-    description = models.TextField(blank=True)
+    about = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(null=True)
 
@@ -38,26 +40,28 @@ class User(models.Model):
 
 
 class NoUpdatedField(models.Model):
-    title = models.TextField(db_index=True)
-    description = models.TextField(blank=True)
+    field_title = models.TextField(db_index=True)
+    field_description = models.TextField(blank=True)
 
     objects = BungiesearchManager()
 
     class Meta:
         app_label = 'core'
+
 
 class ManangedButEmpty(models.Model):
-    title = models.TextField(db_index=True)
-    description = models.TextField(blank=True)
+    field_title = models.TextField(db_index=True)
+    field_description = models.TextField(blank=True)
 
     objects = BungiesearchManager()
 
     class Meta:
         app_label = 'core'
 
+
 class Unmanaged(models.Model):
-    title = models.TextField(db_index=True)
-    description = models.TextField(blank=True)
+    field_title = models.TextField(db_index=True)
+    field_description = models.TextField(blank=True)
 
     class Meta:
         app_label = 'core'

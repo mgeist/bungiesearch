@@ -1,14 +1,14 @@
 from collections import defaultdict
-from elasticsearch_dsl.search import Search
 from importlib import import_module
-import logging
 
-from bungiesearch.aliases import SearchAlias
-from bungiesearch.indices import ModelIndex
-import bungiesearch.managers
 from django.conf import settings
 from elasticsearch.client import Elasticsearch
-from six import string_types, iteritems, itervalues
+from elasticsearch_dsl.search import Search
+from six import iteritems, itervalues, string_types
+
+from .aliases import SearchAlias
+from .indices import ModelIndex
+from .logger import logger
 
 
 class Bungiesearch(Search):
@@ -170,7 +170,7 @@ class Bungiesearch(Search):
         for pos, result in enumerate(raw_results):
             model_name = result.meta.doc_type
             if model_name not in Bungiesearch._model_name_to_index or result.meta.index not in Bungiesearch._model_name_to_index[model_name]:
-                logging.warning('Returned object of type {} ({}) is not defined in the settings, or is not associated to the same index as in the settings.'.format(model_name, result))
+                logger.warning('Returned object of type {} ({}) is not defined in the settings, or is not associated to the same index as in the settings.'.format(model_name, result))
                 results[pos] = result
             else:
                 meta = Bungiesearch.get_model_index(model_name).Meta
@@ -192,7 +192,15 @@ class Bungiesearch(Search):
                     desired_fields = instance._only
 
                 if desired_fields: # Prevents setting the database fetch to __fields but not having specified any field to elasticsearch.
-                    items = items.only(*[field for field in model_obj._meta.get_all_field_names() if field in desired_fields])
+                    items = items.only(
+                        *[field.name
+                          for field in model_obj._meta.get_fields()
+                          # For complete backwards compatibility, you may want to exclude
+                          # GenericForeignKey from the results.
+                          if field.name in desired_fields and \
+                             not (field.many_to_one and field.related_model is None)
+                         ]
+                    )
             # Let's reposition each item in the results and set the _searchmeta meta information.
             for item in items:
                 pos, meta = found_results['{}.{}.{}'.format(index_name, model_name, item.pk)]
